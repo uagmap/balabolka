@@ -1,0 +1,13 @@
+# venv / cache
+.venv/
+__pycache__/
+*.pyc
+.vscode/
+
+# environment
+.env
+
+# local artifacts / large files
+v4_ru.pt
+*.wav
+notes.txt
