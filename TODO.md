@@ -4,8 +4,8 @@ part 1 - balabolka telefon
 - [x] bot skeleton
 - [x] connect to network drive
 - [x] generate TTS alarm.wav file from message body
-- [ ] Place audio file in network drive
-- [ ] turn off alarm.wav if such exists
+- [x] Place audio file in network drive
+- [x] turn off alarm.wav if such exists
 
 
 
@@ -13,5 +13,5 @@ part 1 - balabolka telefon
 
 part 2 - mobile notification
 - [ ] verify command sender is from whitelist
-- [ ] assemble payload
-- [ ] command to push notification to backend api 
+- [ ] send text notification to push
+- [ ] send notification message in telegram channel

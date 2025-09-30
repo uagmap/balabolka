@@ -10,6 +10,7 @@ async def set_commands_menu(application: Application) -> None:
 		BotCommand("ping", "Health check"),
 		BotCommand("files", "List files in shared folder"),
 		BotCommand("tts", "Generate TTS from text"),
+		BotCommand("alarm", "Режим установки балаболки"),
 	]
 	await application.bot.set_my_commands(commands)
 

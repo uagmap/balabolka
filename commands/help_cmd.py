@@ -9,6 +9,7 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 		"/ping - health check\n"
 		"/files - list filenames in the shared directory\n"
 		"/tts - start TTS, then send Russian text (use /cancel to exit)\n"
+		"/alarm - режим установки балаболки\n"
 	)
 
  

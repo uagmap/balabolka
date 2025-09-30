@@ -9,7 +9,7 @@ from commands.help_cmd import help_cmd
 from commands.ping_cmd import ping_cmd
 from commands.files_cmd import files_cmd
 from commands.tts_conversation import build_conversation_handler
-
+from commands.alarm_conversation import build_alarm_conversation_handler
 
 from menus.commands_menu import set_commands_menu
 
@@ -27,8 +27,9 @@ def main() -> None:
 
 	# Conversation for /tts
 	app.add_handler(build_conversation_handler())
-	#app.add_handler(CommandHandler("tts_confirm", tts_confirm_cmd))
-	#app.add_handler(CommandHandler("tts_cancel", tts_cancel_cmd))
+	
+	# Conversation for /alarm
+	app.add_handler(build_alarm_conversation_handler())
 
 	# Set menu commands on startup
 	app.post_init = set_commands_menu
