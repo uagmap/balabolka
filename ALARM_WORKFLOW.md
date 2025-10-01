@@ -56,7 +56,7 @@ The `/alarm` command enables users to mount and unmount alarm messages through b
 - [x] Run `/alarm` when alarm exists
 - [x] Disable existing alarm
 - [x] Verify file deleted from network folder
-- [ ] Test `/cancel` at each conversation state
+- [x] Test `/cancel` at each conversation state
 - [x] Test regeneration flow (Изменить текст)
 - [ ] Test error handling (invalid network path, permission issues, etc.)
 
