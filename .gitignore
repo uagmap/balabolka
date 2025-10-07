@@ -6,6 +6,7 @@ __pycache__/
 
 # environment
 .env
+whitelist.json
 
 # local artifacts / large files
 v4_ru.pt

@@ -7,7 +7,7 @@ from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, Comm
 
 from config.env import get_env, get_alarm_path
 from services.tts import generate_tts_bytes, is_cyrillic_text
-
+from services.auth import require_auth
 # Conversation states
 ALARM_CHECK_STATE = 1
 ALARM_AWAIT_TEXT = 2
@@ -16,6 +16,7 @@ ALARM_VALIDATE = 3
 def alarm_exists() -> bool:
 	return get_alarm_path().exists()
 
+@require_auth
 async def alarm_entry_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 	"""Entry point of conversation, handle /alarm command"""
 	try: 

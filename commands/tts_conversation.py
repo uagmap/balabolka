@@ -5,7 +5,6 @@ from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, Comm
 
 from services.tts import generate_tts_bytes, is_cyrillic_text
 
-
 # Conversation states
 TTS_AWAIT_TEXT = 1
 

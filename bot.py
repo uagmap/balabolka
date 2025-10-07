@@ -10,6 +10,7 @@ from commands.ping_cmd import ping_cmd
 from commands.files_cmd import files_cmd
 from commands.tts_conversation import build_conversation_handler
 from commands.alarm_conversation import build_alarm_conversation_handler
+from commands.whitelist_cmd import whitelist_add_cmd, whitelist_remove_cmd, whitelist_list_cmd
 
 from menus.commands_menu import set_commands_menu
 
@@ -24,7 +25,10 @@ def main() -> None:
 	app.add_handler(CommandHandler("help", help_cmd))
 	app.add_handler(CommandHandler("ping", ping_cmd))
 	app.add_handler(CommandHandler("files", files_cmd))
-
+	app.add_handler(CommandHandler("whitelist_add", whitelist_add_cmd))
+	app.add_handler(CommandHandler("whitelist_remove", whitelist_remove_cmd))
+	app.add_handler(CommandHandler("whitelist_list", whitelist_list_cmd))
+	
 	# Conversation for /tts
 	app.add_handler(build_conversation_handler())
 	

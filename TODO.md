@@ -12,7 +12,7 @@ part 1 - balabolka telefon
 
 
 part 2 - mobile notification
-- [ ] verify command sender is from whitelist
+- [x] verify command sender is from whitelist
 - [ ] add logging feature for audit trail?
 - [ ] send text notification to push
 - [ ] send notification message in telegram channel
