@@ -10,7 +10,7 @@ TTS_AWAIT_TEXT = 1
 
 
 async def tts_entry_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-	await update.message.reply_text("Отправьте текст по-русски (кириллица), чтобы сгенерировать речь. Команда /cancel — отмена.")
+	await update.message.reply_text("Отправьте текст по-русски (кириллица), чтобы сгенерировать речь. Можно использовать знак + для обозначения ударения перед гласными. \n\nКоманда /cancel — отмена.")
 	return TTS_AWAIT_TEXT
 
 
