@@ -8,6 +8,7 @@ from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, Comm
 from config.env import get_env, get_alarm_path
 from services.tts import generate_tts_bytes, is_cyrillic_text
 from services.auth import require_auth
+from services.logger import get_logger
 # Conversation states
 ALARM_CHECK_STATE = 1
 ALARM_AWAIT_TEXT = 2
@@ -91,6 +92,7 @@ async def alarm_validate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 		try:
 			alarm_path = get_alarm_path()
 			wav_data = context.user_data['alarm_wav']
+			alarm_text = context.user_data.get('alarm_text', '')
 
 			if not wav_data:
 				await update.message.reply_text("⚠️ Данные для установки файла не найдены. Отменено.", reply_markup=ReplyKeyboardRemove())
@@ -98,6 +100,10 @@ async def alarm_validate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 			with alarm_path.open("wb") as f:
 				f.write(wav_data)
+
+			# Log the alarm mounting
+			logger = get_logger()
+			logger.log_alarm_mounted(update, alarm_text)
 
 			await update.message.reply_text(
 				f"✅ Балаболка установлена!\n\n"
@@ -139,6 +145,11 @@ async def alarm_disable(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 			alarm_path = get_alarm_path()
 			if alarm_path.exists():
 				alarm_path.unlink() #delete this file
+				
+				# Log the alarm disabling
+				logger = get_logger()
+				logger.log_alarm_disabled(update)
+				
 				await update.message.reply_text(
 					"✅ Балаболка отключена, файл удален из сетевой папки.",
 					reply_markup=ReplyKeyboardRemove()
