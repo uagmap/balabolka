@@ -18,7 +18,7 @@ def generate_tts_bytes(text: str) -> io.BytesIO:
 	model.to(device)
 
 	sample_rate = 8000
-	speaker = 'baya'
+	speaker = 'xenia'
 
 	audio_tensor = model.apply_tts(text=text, speaker=speaker, sample_rate=sample_rate)
 	audio_tensor = audio_tensor.cpu()
