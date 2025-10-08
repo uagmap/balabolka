@@ -11,4 +11,5 @@ whitelist.json
 # local artifacts / large files
 v4_ru.pt
 *.wav
+*.log
 notes.txt
