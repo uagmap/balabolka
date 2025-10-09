@@ -6,7 +6,7 @@ from telegram import InputFile, Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CommandHandler, filters
 
 from config.env import get_env, get_alarm_path
-from services.tts import generate_tts_bytes, is_cyrillic_text
+from services.tts import AVAILABLE_VOICES, generate_all_voices, generate_tts_bytes, is_cyrillic_text
 from services.auth import require_auth
 from services.logger import get_logger
 # Conversation states
@@ -54,23 +54,29 @@ async def alarm_receive_text(update: Update, context: ContextTypes.DEFAULT_TYPE)
 	try: 
 		#store user text for re-iteration
 		context.user_data['alarm_text'] = text
-		#generate TTS file
-		wav_bytes = generate_tts_bytes(text)
-		context.user_data['alarm_wav'] = wav_bytes.getvalue() #store for mounting later
+		#generate TTS files
+		files = generate_all_voices(text)
+		context.user_data['alarm_speakers'] = {voice: file.getvalue() for voice, file in files.items()} #store for mounting later
 
-		#send audiofile to user for validation
-		filename = "alarm_test.wav"
-		await update.message.reply_document(
-			document=InputFile(wav_bytes, filename=filename), 
-			caption="🔊 Прослушайте сообщение и утвердите качество оповещения."
-		)
+		#send all audiofiles to user for selection and validation
+		#TODO: change this to be sent as single message!!!
+		for voice, file in files.items():
+			filename = f"alarm_{voice}.wav"
+			await update.message.reply_document(
+				document=InputFile(file, filename=filename), 
+				caption=f"Голос: {voice}"
+			)
 
 		#offer validation options
-		keyboard = [["Утвердить", "Изменить текст", "Отмена"]]
+		keyboard = [
+			['aidar', 'baya', 'kseniya'],
+			['xenia', 'eugene'],
+			["Изменить текст", "Отмена"]
+			]
 		reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
 		await update.message.reply_text(
-			"Выберите действие:\n"
-			"• Утвердить — разместить файл в сетевой папке\n"
+			"Прослушайте все голоса и выберите действие:\n"
+			"• Нажмите на имя голоса — утвердить и установить балаболку с этим голосом\n"
 			"• Изменить текст — отправить новый текст, изменить ударения\n"
 			"• Отмена — отменить операцию",
 			reply_markup=reply_markup
@@ -87,23 +93,24 @@ async def alarm_validate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 	"""Validate the alarm audio file"""
 	choice = update.message.text or ""
 
-	if choice == "Утвердить":
-		#mount the alarm
+	if choice in AVAILABLE_VOICES:
+		#mount the alarm with selected voice
 		try:
 			alarm_path = get_alarm_path()
-			wav_data = context.user_data['alarm_wav']
+			alarm_speakers = context.user_data.get('alarm_speakers')
 			alarm_text = context.user_data.get('alarm_text', '')
 
-			if not wav_data:
+			if choice not in alarm_speakers:
 				await update.message.reply_text("⚠️ Данные для установки файла не найдены. Отменено.", reply_markup=ReplyKeyboardRemove())
 				return ConversationHandler.END
 
+			wav_data = alarm_speakers[choice]
 			with alarm_path.open("wb") as f:
 				f.write(wav_data)
 
 			# Log the alarm mounting
 			logger = get_logger()
-			logger.log_alarm_mounted(update, alarm_text)
+			logger.log_alarm_mounted(update, f"{alarm_text} (голос: {choice})")
 
 			await update.message.reply_text(
 				f"✅ Балаболка установлена!\n\n"

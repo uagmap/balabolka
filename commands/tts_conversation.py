@@ -3,7 +3,7 @@ from __future__ import annotations
 from telegram import InputFile, Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CommandHandler, filters
 
-from services.tts import generate_tts_bytes, is_cyrillic_text
+from services.tts import generate_all_voices, is_cyrillic_text
 
 # Conversation states
 TTS_AWAIT_TEXT = 1
@@ -20,9 +20,11 @@ async def tts_receive_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 		await update.message.reply_text("Поддерживается только кириллица. Отправьте текст на русском или /cancel.")
 		return TTS_AWAIT_TEXT
 	try:
-		wav_bytes = generate_tts_bytes(text)
-		filename = "tts.wav"
-		await update.message.reply_document(document=InputFile(wav_bytes, filename=filename), caption="Готово")
+		wav_files = generate_all_voices(text)
+
+		for voice, file in wav_files.items():
+			filename = f"tts_{voice}.wav"
+			await update.message.reply_document(document=InputFile(file, filename=filename), caption=f"Голос: {voice}")
 		return ConversationHandler.END
 	except Exception as e:
 		await update.message.reply_text(f"Ошибка TTS: {e}")

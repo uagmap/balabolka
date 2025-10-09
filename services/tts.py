@@ -6,9 +6,19 @@ import wave
 
 import torch
 
+AVAILABLE_VOICES = ['aidar', 'baya', 'kseniya', 'xenia', 'eugene']
 
-def generate_tts_bytes(text: str) -> io.BytesIO:
-	"""Generate TTS and return a BytesIO containing a WAV file (mono, 16-bit)."""
+_model_cache = None
+def _load_model():
+	"""load and cache TTS model"""
+	# This used to be part of generate_tts_bytes, but was moved to a separate function to avoid reloading
+	# the model every time for generating for each voice
+	
+	#check if already loaded
+	global _model_cache
+	if _model_cache is not None:
+		return _model_cache
+
 	device = torch.device('cpu')
 	torch.set_num_threads(4)
 	local_file = 'v4_ru.pt'
@@ -16,9 +26,13 @@ def generate_tts_bytes(text: str) -> io.BytesIO:
 		torch.hub.download_url_to_file('https://models.silero.ai/models/tts/ru/v4_ru.pt', local_file)
 	model = torch.package.PackageImporter(local_file).load_pickle("tts_models", "model")
 	model.to(device)
+	_model_cache = model
+	return model
 
+def generate_tts_bytes(text: str, speaker: str) -> io.BytesIO:
+	"""Generate TTS and return a BytesIO containing a WAV file (mono, 16-bit)."""
+	model = _load_model()
 	sample_rate = 8000
-	speaker = 'xenia'
 
 	audio_tensor = model.apply_tts(text=text, speaker=speaker, sample_rate=sample_rate)
 	audio_tensor = audio_tensor.cpu()
@@ -34,6 +48,11 @@ def generate_tts_bytes(text: str) -> io.BytesIO:
 	buffer.seek(0)
 	return buffer
 
+def generate_all_voices(text: str) -> dict[str, io.BytesIO]:
+	result = {}
+	for voice in AVAILABLE_VOICES:
+		result[voice] = generate_tts_bytes(text, voice)
+	return result
 
 def is_cyrillic_text(text: str) -> bool:
 	"""Return True if the text looks like Russian/Cyrillic input suitable for the model."""
