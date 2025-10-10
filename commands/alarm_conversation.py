@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from telegram import InputFile, Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import InputFile, InputMediaAudio, Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CommandHandler, filters
 
 from config.env import get_env, get_alarm_path
@@ -60,12 +60,15 @@ async def alarm_receive_text(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 		#send all audiofiles to user for selection and validation
 		#TODO: change this to be sent as single message!!!
-		for voice, file in files.items():
+		"""for voice, file in files.items():
 			filename = f"alarm_{voice}.wav"
 			await update.message.reply_document(
 				document=InputFile(file, filename=filename), 
 				caption=f"Голос: {voice}"
-			)
+			)"""
+
+		media_group = [InputMediaAudio(file, filename=f"{voice}.wav") for voice, file in files.items()]
+		await update.message.reply_media_group(media=media_group)
 
 		#offer validation options
 		keyboard = [
@@ -167,6 +170,8 @@ async def alarm_disable(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 					reply_markup=ReplyKeyboardRemove()
 				)
 
+			return ConversationHandler.END
+			
 		except Exception as e:
 			await update.message.reply_text(f"Ошибка при удалении файла: {e}", reply_markup=ReplyKeyboardRemove())
 			return ConversationHandler.END
