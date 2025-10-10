@@ -17,5 +17,7 @@ async def logs_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text("Логи пусты.")
         return
 
+    logger._clean_old_logs()
+
     # send the log file directly
     await update.message.reply_document(document=open(logger.log_file, 'rb'), filename="activity.log")

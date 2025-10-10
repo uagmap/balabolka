@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from logging import Logger
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 
 from telegram import Update
@@ -40,12 +40,38 @@ class Logger:
             print(f"Failed to write log entry: {e}")  #need to fix this bcuz if bot run on a server then I'll never know there is an error 
             
 
+    def _clean_old_logs(self) -> None:
+        """Remove logs entries older than 30 days."""
+        try:
+            if not self.log_file.exists():
+                return
+
+            delta_date = datetime.now() - timedelta(days=30)
+
+            with open(self.log_file, 'r+', encoding='utf-8') as f:
+                log_lines = f.readlines()
+                f.seek(0)
+                f.truncate()
+
+                for line in log_lines:
+                    try:
+                        log_entry = json.loads(line.strip())
+                        log_date = datetime.strptime(log_entry['timestamp'], "%Y-%m-%d %H:%M")
+                        if log_date >= delta_date:
+                            f.write(line)     #keep entries        
+
+                    except (json.JSONDecodeError, KeyError, ValueError):
+                        continue
+
+        except Exception as e:
+            print(f"Failed to clean old logs: {e}")
+
     def log_alarm_mounted(self, update: Update, alarm_text: str) -> None:
         """Log when user mounts an alarm"""
         entry = {
-            "timestamp": datetime.now().isoformat(),
-            "action": "alarm_mounted",
-            "username": self._get_user_info(update)["username"],
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "call": "alarm_mounted",
+            "user": self._get_user_info(update)["username"],
             "text": alarm_text
         }
         self._write_log_entry(entry)
@@ -53,24 +79,27 @@ class Logger:
     def log_alarm_disabled(self, update: Update) -> None:
         """Log when user disables an alarm"""
         entry = {
-            "timestamp": datetime.now().isoformat(),
-            "action": "alarm_disabled",
-            "username": self._get_user_info(update)["username"]
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "call": "alarm_disabled",
+            "user": self._get_user_info(update)["username"]
         }
         self._write_log_entry(entry)
 
     def log_custom(self, action: str, details: Dict[str, any], update: Optional[Update] = None) -> None:
         """Log custom action"""
         entry = {
-            "timestamp": datetime.now().isoformat(),
-            "action": action,
-            "username": self._get_user_info(update)["username"],
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "call": action,
+            "user": self._get_user_info(update)["username"],
             "details": details
         }
         self._write_log_entry(entry)
 
     def read_recent_logs(self, limit: int = 50) -> list[Dict[str, Any]]:
-        """Read recent logs"""
+        """Read recent logs, on read - clean old logs"""
+
+        self._clean_old_logs()
+
         if not self.log_file.exists():
             return []
 
