@@ -59,14 +59,6 @@ async def alarm_receive_text(update: Update, context: ContextTypes.DEFAULT_TYPE)
 		context.user_data['alarm_speakers'] = {voice: file.getvalue() for voice, file in files.items()} #store for mounting later
 
 		#send all audiofiles to user for selection and validation
-		#TODO: change this to be sent as single message!!!
-		"""for voice, file in files.items():
-			filename = f"alarm_{voice}.wav"
-			await update.message.reply_document(
-				document=InputFile(file, filename=filename), 
-				caption=f"Голос: {voice}"
-			)"""
-
 		media_group = [InputMediaAudio(file, filename=f"{voice}.wav") for voice, file in files.items()]
 		await update.message.reply_media_group(media=media_group)
 

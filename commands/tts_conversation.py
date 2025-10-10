@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from telegram import InputFile, Update
+from telegram import InputFile, InputMediaAudio, Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CommandHandler, filters
 
 from services.tts import generate_all_voices, is_cyrillic_text
@@ -22,9 +22,8 @@ async def tts_receive_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 	try:
 		wav_files = generate_all_voices(text)
 
-		for voice, file in wav_files.items():
-			filename = f"tts_{voice}.wav"
-			await update.message.reply_document(document=InputFile(file, filename=filename), caption=f"Голос: {voice}")
+		media_group = [InputMediaAudio(file, filename=f"{voice}.wav") for voice, file in wav_files.items()]
+		await update.message.reply_media_group(media=media_group)
 		return ConversationHandler.END
 	except Exception as e:
 		await update.message.reply_text(f"Ошибка TTS: {e}")
