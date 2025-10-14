@@ -10,7 +10,7 @@ from telegram.ext import ContextTypes
 
 from config.env import get_env
 
-whitelist_file = Path(__file__).parent.parent / "whitelist.json"
+whitelist_file = Path.cwd() / "whitelist.json"
 
 class AuthManager:
     def __init__(self):
