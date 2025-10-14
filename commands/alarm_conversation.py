@@ -1,18 +1,18 @@
-from __future__ import annotations
-
-from pathlib import Path
-
-from telegram import InputFile, InputMediaAudio, Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CommandHandler, filters
 
-from config.env import get_env, get_alarm_path
-from services.tts import AVAILABLE_VOICES, generate_all_voices, generate_tts_bytes, is_cyrillic_text
+from config.env import get_alarm_path
+from services.tts import AVAILABLE_VOICES
+from services.text_utils import validate_and_send_tts
 from services.auth import require_auth
 from services.logger import get_logger
+
 # Conversation states
 ALARM_CHECK_STATE = 1
 ALARM_AWAIT_TEXT = 2
 ALARM_VALIDATE = 3
+
+logger = get_logger()
 
 def alarm_exists() -> bool:
 	return get_alarm_path().exists()
@@ -48,40 +48,31 @@ async def alarm_entry_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 async def alarm_receive_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 	"""What to do on received text body"""
 	text = update.message.text or ""
-	if not is_cyrillic_text(text):
-		await update.message.reply_text("⚠️ Поддерживается только кириллица. Отправьте текст на русском или /cancel для отмены.")
+
+	#store user text for re-iteration
+	context.user_data['alarm_text'] = text
+
+	ok, files = await validate_and_send_tts(update, context, text)
+	if not ok: 
 		return ALARM_AWAIT_TEXT
-	try: 
-		#store user text for re-iteration
-		context.user_data['alarm_text'] = text
-		#generate TTS files
-		files = generate_all_voices(text)
-		context.user_data['alarm_speakers'] = {voice: file.getvalue() for voice, file in files.items()} #store for mounting later
+	
+	context.user_data['alarm_speakers'] = {voice: file.getvalue() for voice, file in files.items()} #store for mounting later
 
-		#send all audiofiles to user for selection and validation
-		media_group = [InputMediaAudio(file, filename=f"{voice}.wav") for voice, file in files.items()]
-		await update.message.reply_media_group(media=media_group)
-
-		#offer validation options
-		keyboard = [
-			['aidar', 'baya', 'kseniya'],
-			['xenia', 'eugene'],
-			["Изменить текст", "Отмена"]
-			]
-		reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
-		await update.message.reply_text(
-			"Прослушайте все голоса и выберите действие:\n"
-			"• Нажмите на имя голоса — утвердить и установить балаболку с этим голосом\n"
-			"• Изменить текст — отправить новый текст, изменить ударения\n"
-			"• Отмена — отменить операцию",
-			reply_markup=reply_markup
-		)
-
-		return ALARM_VALIDATE
-
-	except Exception as e:
-		await update.message.reply_text(f"Ошибка при генерации TTS файла: {e}")
-		return ConversationHandler.END
+	#offer validation options
+	keyboard = [
+		['aidar', 'baya', 'kseniya'],
+		['xenia', 'eugene'],
+		["Изменить текст", "Отмена"]
+		]
+	reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
+	await update.message.reply_text(
+		"Прослушайте все голоса и выберите действие:\n"
+		"• Нажмите на имя голоса — утвердить и установить балаболку с этим голосом\n"
+		"• Изменить текст — отправить новый текст, изменить ударения\n"
+		"• Отмена — отменить операцию",
+		reply_markup=reply_markup
+	)
+	return ALARM_VALIDATE
 
 
 async def alarm_validate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -104,7 +95,6 @@ async def alarm_validate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 				f.write(wav_data)
 
 			# Log the alarm mounting
-			logger = get_logger()
 			logger.log_alarm_mounted(update, f"{alarm_text} (голос: {choice})")
 
 			await update.message.reply_text(
@@ -149,7 +139,6 @@ async def alarm_disable(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 				alarm_path.unlink() #delete this file
 				
 				# Log the alarm disabling
-				logger = get_logger()
 				logger.log_alarm_disabled(update)
 				
 				await update.message.reply_text(

@@ -1,35 +1,25 @@
-from __future__ import annotations
-
-from telegram import InputFile, InputMediaAudio, Update
+from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CommandHandler, filters
 
-from services.tts import generate_all_voices, is_cyrillic_text
+from services.text_utils import validate_and_send_tts
 
 # Conversation states
 TTS_AWAIT_TEXT = 1
 
-
+# Entry point for /tts command: state machine
 async def tts_entry_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 	await update.message.reply_text("Отправьте текст по-русски (кириллица), чтобы сгенерировать речь. Можно использовать знак + для обозначения ударения перед гласными. \n\nКоманда /cancel — отмена.")
 	return TTS_AWAIT_TEXT
 
-
+# What to do when text is received
 async def tts_receive_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 	text = update.message.text or ""
-	if not is_cyrillic_text(text):
-		await update.message.reply_text("Поддерживается только кириллица. Отправьте текст на русском или /cancel.")
-		return TTS_AWAIT_TEXT
-	try:
-		wav_files = generate_all_voices(text)
-
-		media_group = [InputMediaAudio(file, filename=f"{voice}.wav") for voice, file in wav_files.items()]
-		await update.message.reply_media_group(media=media_group)
+	ok, _ = await validate_and_send_tts(update, context, text)
+	if ok:
 		return ConversationHandler.END
-	except Exception as e:
-		await update.message.reply_text(f"Ошибка TTS: {e}")
-		return TTS_AWAIT_TEXT
+	return TTS_AWAIT_TEXT
 
-
+# Conversation fallback on /cancel
 async def tts_cancel_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 	await update.message.reply_text("Отменено. Возвращаемся в обычный режим.")
 	return ConversationHandler.END
