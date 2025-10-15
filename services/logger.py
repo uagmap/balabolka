@@ -15,9 +15,9 @@ class AppLogger:
 
         handler = TimedRotatingFileHandler(
             filename=str(self.log_file),
-            when="midnight",
-            interval=1,
-            backupCount=31,
+            when="D",
+            interval=31,
+            backupCount=1,
             encoding="utf-8",
             utc=False,
         )
