@@ -14,8 +14,10 @@ async def tts_entry_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 # What to do when text is received
 async def tts_receive_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 	text = update.message.text or ""
-	ok, _ = await validate_and_send_tts(update, context, text)
+	ok = await validate_and_send_tts(update, context, text)
 	if ok:
+		#clear user data after completion
+		context.user_data.clear()
 		return ConversationHandler.END
 	return TTS_AWAIT_TEXT
 

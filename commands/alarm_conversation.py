@@ -52,11 +52,9 @@ async def alarm_receive_text(update: Update, context: ContextTypes.DEFAULT_TYPE)
 	#store user text for re-iteration
 	context.user_data['alarm_text'] = text
 
-	ok, files = await validate_and_send_tts(update, context, text)
+	ok = await validate_and_send_tts(update, context, text)
 	if not ok: 
 		return ALARM_AWAIT_TEXT
-	
-	context.user_data['alarm_speakers'] = {voice: file.getvalue() for voice, file in files.items()} #store for mounting later
 
 	#offer validation options
 	keyboard = [

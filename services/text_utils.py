@@ -6,13 +6,14 @@ async def validate_and_send_tts(update: Update, context, text: str):
 
     if not is_cyrillic_text(text):
         await update.message.reply_text("⚠️ Поддерживается только кириллица. Отправьте текст на русском или /cancel.")
-        return False, None
+        return False
     
     try:
         wav_files = generate_all_voices(text)
         media_group = [InputMediaAudio(file, filename=f"{voice}.wav") for voice, file in wav_files.items()]
         await update.message.reply_media_group(media=media_group)
-        return True, wav_files
+        context.user_data['alarm_speakers'] = {voice: file.getvalue() for voice, file in wav_files.items()} #store for mounting later
+        return True
     except Exception as e:
         await update.message.reply_text(f"Ошибка TTS: {e}")
-        return False, None
+        return False

@@ -7,7 +7,7 @@ part 1 - balabolka telefon
 - [x] Place audio file in network drive
 - [x] turn off alarm.wav if such exists
 - [x] sending audiofiles to be separate script
-- [ ] rewrite logging feature to make use of logging library
+- [x] rewrite logging feature to make use of logging library
 - [x] global get_logger in alarm_conversation.py
 - [x] Path.parent.parent to Path.cwd(global path)
 - [ ] exception handling errors to be sent to admin dm
