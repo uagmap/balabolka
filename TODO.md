@@ -11,6 +11,8 @@ part 1 - balabolka telefon
 - [x] global get_logger in alarm_conversation.py
 - [x] Path.parent.parent to Path.cwd(global path)
 - [ ] exception handling errors to be sent to admin dm
+- [x] rewrite SMB for cross-platform system compatibility
+- [ ] move to docker
 
 
 

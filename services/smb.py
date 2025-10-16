@@ -1,32 +1,39 @@
-from __future__ import annotations
-
 import os
-import subprocess
+from smbclient import open_file, remove, register_session, listdir, stat as smb_stat
 
-from config.env import get_env
-
-
-def connect_smb() -> None:
+def smb_register_session() -> None:
+	"""Register an SMB session to the given path with credentials"""
+	server = _extract_server(os.getenv("NETWORK_ALARM_DIR"))
 	smb_user = os.getenv("SMB_USERNAME")
 	smb_pass = os.getenv("SMB_PASSWORD")
-	if not smb_user or not smb_pass:
-		return
-	share_root = get_env("NETWORK_ALARM_DIR")
+	register_session(server, username=smb_user, password=smb_pass)
 
-	# build a cmd command to connect to the smb share (net use)
-	cmd = [
-		"cmd",
-		"/c",
-		"net",
-		"use",
-		share_root,
-		f"/user:{smb_user}",
-		smb_pass,
-		"/persistent:no",
-	]
+
+def create_file(path: str, data: bytes) -> None:
+	with open_file(path, mode="wb") as f:
+		f.write(data)
+
+
+def delete_file(path: str) -> None:
+	remove(path)
+
+
+def list_directory(path: str) -> list[str]:
+	"""Return list of entries in a given directory path"""
+	return listdir(path)
+
+
+def file_exists(path: str) -> bool:
+	"""Return True if the SMB path exists (file or directory)."""
 	try:
-		subprocess.run(cmd, check=False, capture_output=True)
+		smb_stat(path)
+		return True
 	except Exception:
-		pass
+		return False
 
 
+def _extract_server(share: str) -> str:
+	s = share.lstrip("/")
+	# Now s looks like "server/share"
+	parts = s.split("/", 1)
+	return parts[0] if parts and parts[0] else ""

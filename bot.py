@@ -1,7 +1,5 @@
-from __future__ import annotations
-
 from config.env import load_env, get_env
-from services.smb import connect_smb
+from services.smb import smb_register_session
 from telegram.ext import Application, CommandHandler
 
 from commands.start_cmd import start_cmd
@@ -18,7 +16,7 @@ from menus.commands_menu import set_commands_menu
 
 def main() -> None:
 	load_env()
-	connect_smb()
+	smb_register_session()
 	token = get_env("API_KEY_TELEGRAM")
 
 	app = Application.builder().token(token).build()

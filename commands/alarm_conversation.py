@@ -6,6 +6,7 @@ from services.tts import AVAILABLE_VOICES
 from services.text_utils import validate_and_send_tts
 from services.auth import require_auth
 from services.logger import get_logger
+from services.smb import create_file, delete_file, list_directory
 
 # Conversation states
 ALARM_CHECK_STATE = 1
@@ -80,7 +81,7 @@ async def alarm_validate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 	if choice in AVAILABLE_VOICES:
 		#mount the alarm with selected voice
 		try:
-			alarm_path = get_alarm_path()
+			alarm_path = str(get_alarm_path())
 			alarm_speakers = context.user_data.get('alarm_speakers')
 			alarm_text = context.user_data.get('alarm_text', '')
 
@@ -89,8 +90,7 @@ async def alarm_validate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 				return ConversationHandler.END
 
 			wav_data = alarm_speakers[choice]
-			with alarm_path.open("wb") as f:
-				f.write(wav_data)
+			create_file(alarm_path, wav_data)
 
 			# Log the alarm mounting
 			logger.log_alarm_mounted(update, f"{alarm_text} (голос: {choice})")
@@ -132,9 +132,10 @@ async def alarm_disable(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
 	if text == "Отключить балаболку":
 		try:
-			alarm_path = get_alarm_path()
-			if alarm_path.exists():
-				alarm_path.unlink() #delete this file
+			alarm_path = str(get_alarm_path())
+			from services.smb import file_exists
+			if file_exists(alarm_path):
+				delete_file(alarm_path) #delete this file
 				
 				# Log the alarm disabling
 				logger.log_alarm_disabled(update)
