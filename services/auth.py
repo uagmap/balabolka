@@ -9,8 +9,10 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from config.env import get_env
+from services.logger import get_logger
 
 whitelist_file = Path.cwd() / "whitelist.json"
+logger = get_logger()
 
 class AuthManager:
     def __init__(self):
@@ -26,7 +28,7 @@ class AuthManager:
                     data = json.load(f)
                     self.whitelist = set(data.get('users', []))
             except Exception as e:
-                print(f"Error loading whitelist: {e}")
+                logger.log_exception(None, f"Error loading whitelist: {e}")
                 self.whitelist = set()
         else:
             # Initialize whitelist with admin
@@ -42,7 +44,7 @@ class AuthManager:
             with open (whitelist_file, "w", encoding='utf-8') as f:
                 json.dump({"users": list(self.whitelist)}, f, indent=2, ensure_ascii=False)
         except Exception as e:
-            print(f"Error saving file: {e}")
+            logger.log_exception(None, f"Error saving whitelist: {e}")
 
     def _get_admin_username(self) -> Optional[str]:
         """Get admin username from env."""
@@ -50,7 +52,7 @@ class AuthManager:
             try:
                 self.admin_username = get_env("ADMIN_USERNAME")
             except RuntimeError as e:
-                print(f"Error: ADMIN_USERNAME is not set in .env")
+                logger.log_exception(None, "Error: ADMIN_USERNAME is not set in .env")
                 return None
         return self.admin_username
 

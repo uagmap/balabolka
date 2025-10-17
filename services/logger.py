@@ -3,6 +3,7 @@ from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 
 from telegram import Update
+from typing import Optional
 
 # Path to log file
 LOG_FILE = Path.cwd() / "activity.log"
@@ -28,9 +29,9 @@ class AppLogger:
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
 
-    def _get_username(self, update: Update) -> str:
+    def _get_username(self, update: Optional[Update]) -> str:
         """Extracts username info from Update."""
-        user = update.effective_user
+        user = update.effective_user if update else None
         return (user.username) if user else "unknown"
 
     def log_alarm_mounted(self, update: Update, alarm_text: str) -> None:
@@ -42,6 +43,11 @@ class AppLogger:
         """Log when user disables an alarm"""
         username = self._get_username(update)
         self.logger.info(f"alarm_disabled user={username}")
+
+    def log_exception(self, update: Optional[Update], message: str) -> None:
+        """Log custom message"""
+        username = self._get_username(update)
+        self.logger.error(f"exception user={username} message={message}")
 
 # Global instance of a class
 # This keeps only one instance of the class in the entire application

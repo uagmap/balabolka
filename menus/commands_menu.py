@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from telegram import BotCommand
 from telegram.ext import Application
 

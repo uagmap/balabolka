@@ -6,7 +6,7 @@ from services.tts import AVAILABLE_VOICES
 from services.text_utils import validate_and_send_tts
 from services.auth import require_auth
 from services.logger import get_logger
-from services.smb import create_file, delete_file, list_directory
+from services.smb import create_file, delete_file, file_exists
 
 # Conversation states
 ALARM_CHECK_STATE = 1
@@ -16,7 +16,7 @@ ALARM_VALIDATE = 3
 logger = get_logger()
 
 def alarm_exists() -> bool:
-	return get_alarm_path().exists()
+    return file_exists(str(get_alarm_path()))
 
 @require_auth
 async def alarm_entry_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -41,6 +41,7 @@ async def alarm_entry_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 			)
 			return ALARM_AWAIT_TEXT
 	except Exception as e:
+		logger.log_exception(update, f"Ошибка при проверке балаболки: {e}")
 		await update.message.reply_text(f"Ошибка при проверке балаболки: {e}")
 		return ConversationHandler.END
 
@@ -107,6 +108,7 @@ async def alarm_validate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 			return ConversationHandler.END
 	
 		except Exception as e:
+			logger.log_exception(update, f"Ошибка при установке TTS файла: {e}")
 			await update.message.reply_text(f"Ошибка при установке TTS файла: {e}")
 			return ConversationHandler.END
 		
@@ -153,6 +155,7 @@ async def alarm_disable(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 			return ConversationHandler.END
 			
 		except Exception as e:
+			logger.log_exception(update, f"Ошибка при удалении файла: {e}")
 			await update.message.reply_text(f"Ошибка при удалении файла: {e}", reply_markup=ReplyKeyboardRemove())
 			return ConversationHandler.END
 	else:
