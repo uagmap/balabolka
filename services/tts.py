@@ -36,9 +36,12 @@ def generate_tts_bytes(text: str, speaker: str) -> io.BytesIO:
 
 	audio_tensor = model.apply_tts(text=text, speaker=speaker, sample_rate=sample_rate)
 	audio_tensor = audio_tensor.cpu()
+	# Convert (-1.0, 1.0) float audio range to 16-bit signed, clamp to this range and convert to torch int
 	int16_tensor = (audio_tensor * 32767.0).clamp_(-32768, 32767).to(torch.int16)
+	# PyTorch tensor to numpy array and to raw bytes
 	raw_bytes = int16_tensor.numpy().tobytes()
 
+	# WAV file creation
 	buffer = io.BytesIO()
 	with wave.open(buffer, 'wb') as wf:
 		wf.setnchannels(1)
