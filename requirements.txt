@@ -1,6 +1,5 @@
 python-telegram-bot
 python-dotenv
-requests
-torch
+torch==2.8.0
 numpy
 smbprotocol
