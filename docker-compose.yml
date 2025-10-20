@@ -1,0 +1,14 @@
+services:
+  bot:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - ./config/.env
+    environment:
+      - TZ=Europe/Moscow
+    volumes:
+      - tts-cache:/app
+    network_mode: host
+
+volumes:
+  tts-cache:

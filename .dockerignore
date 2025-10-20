@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Env
+.env
+.env.*
+
+# VCS
+.git
+.gitignore
+
+# OS / IDE
+.vscode/
+
+
+# Cache / build
+.dist/
+build/
+dist/
+*.egg-info/
+
+# Logs
+logs/
+*.log

@@ -10,7 +10,7 @@ part 1 - balabolka telefon
 - [x] rewrite logging feature to make use of logging library
 - [x] global get_logger in alarm_conversation.py
 - [x] Path.parent.parent to Path.cwd(global path)
-- [ ] exception handling errors to be sent to admin dm
+- [x] exception handling errors are logged now
 - [x] rewrite SMB for cross-platform system compatibility
 - [ ] move to docker
 
