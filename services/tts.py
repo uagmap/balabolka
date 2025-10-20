@@ -44,11 +44,11 @@ def generate_tts_bytes(text: str, speaker: str) -> io.BytesIO:
 	# WAV file creation
 	buffer = io.BytesIO()
 	with wave.open(buffer, 'wb') as wf:
-		wf.setnchannels(1)
-		wf.setsampwidth(2)
+		wf.setnchannels(1)	# Mono output
+		wf.setsampwidth(2)	# 2 bytes (16-bits) per sample
 		wf.setframerate(sample_rate)
 		wf.writeframes(raw_bytes)
-	buffer.seek(0)
+	buffer.seek(0) # Reset buffer to start
 	return buffer
 
 def generate_all_voices(text: str) -> dict[str, io.BytesIO]:
