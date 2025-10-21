@@ -15,5 +15,5 @@ async def validate_and_send_tts(update: Update, context, text: str):
         context.user_data['alarm_speakers'] = {voice: file.getvalue() for voice, file in wav_files.items()} #store for mounting later
         return True
     except Exception as e:
-        await update.message.reply_text(f"Ошибка TTS: {e}")
+        await update.message.reply_text(f"Ошибка TTS: {e}\nВведите текст снова или /cancel.")
         return False

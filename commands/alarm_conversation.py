@@ -135,7 +135,6 @@ async def alarm_disable(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 	if text == "Отключить балаболку":
 		try:
 			alarm_path = str(get_alarm_path())
-			from services.smb import file_exists
 			if file_exists(alarm_path):
 				delete_file(alarm_path) #delete this file
 				

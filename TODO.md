@@ -12,7 +12,7 @@ part 1 - balabolka telefon
 - [x] Path.parent.parent to Path.cwd(global path)
 - [x] exception handling errors are logged now
 - [x] rewrite SMB for cross-platform system compatibility
-- [ ] move to docker
+- [x] move to docker
 
 
 
