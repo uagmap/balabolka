@@ -2,7 +2,7 @@ import os
 from smbclient import open_file, remove, register_session, listdir, stat as smb_stat
 
 def smb_register_session() -> None:
-	"""Register an SMB session to the given path with credentials"""
+	"""Register an SMB session to the given path with credentials in .env"""
 	server = _extract_server(os.getenv("NETWORK_ALARM_DIR"))
 	smb_user = os.getenv("SMB_USERNAME")
 	smb_pass = os.getenv("SMB_PASSWORD")
@@ -29,7 +29,13 @@ def file_exists(path: str) -> bool:
 		smb_stat(path)
 		return True
 	except Exception:
-		return False
+		try:
+			# try re-register and retry
+			smb_register_session() 
+			smb_stat(path)
+			return True
+		except Exception:
+			return False
 
 
 def _extract_server(share: str) -> str:
