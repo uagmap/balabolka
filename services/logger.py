@@ -6,11 +6,12 @@ from telegram import Update
 from typing import Optional
 
 # Path to log file
-LOG_FILE = Path.cwd() / "activity.log"
+LOG_FILE = Path.cwd() / "logs/activity.log"
 
 class AppLogger:
     def __init__(self, log_file: Path = LOG_FILE):
         self.log_file = log_file
+        self.log_file.parent.mkdir(parents=True, exist_ok=True) # create subfolder if needed
         self.logger = logging.getLogger("Balabolka")
         self.logger.setLevel(logging.INFO) # all logs in this program are info
 

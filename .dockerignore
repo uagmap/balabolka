@@ -12,6 +12,7 @@ __pycache__/
 # VCS
 .git
 .gitignore
+*.md
 
 # OS / IDE
 .vscode/
