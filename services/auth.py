@@ -129,6 +129,7 @@ def require_auth(func):
         username = user.username if user else None
 
         if not auth._is_whitelisted(username):
+            logger.log_access_denied(update, f"{func.__name__}")
             await update.message.reply_text("⛔ Доступ запрещен Ухади")
             return
         

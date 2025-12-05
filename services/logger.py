@@ -17,9 +17,9 @@ class AppLogger:
 
         handler = TimedRotatingFileHandler(
             filename=str(self.log_file),
-            when="D",
-            interval=31,
-            backupCount=1,
+            when="D",       # daily rotation
+            interval=1,    # every day
+            backupCount=30,  # keep 30 days of logs
             encoding="utf-8",
             utc=False,
         )
@@ -44,6 +44,11 @@ class AppLogger:
         """Log when user disables an alarm"""
         username = self._get_username(update)
         self.logger.info(f"alarm_disabled user={username}")
+
+    def log_access_denied(self, update: Update, command: str) -> None:
+        """Log unauthorized command calls"""
+        username = self._get_username(update)
+        self.logger.warning(f"access_denied user={username} command={command}")
 
     def log_exception(self, update: Optional[Update], message: str) -> None:
         """Log custom message"""

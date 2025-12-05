@@ -19,4 +19,4 @@ def get_env(name: str, default: Optional[str] = None) -> str:
 
 def get_alarm_path() -> Path:
 	alarm_dir = get_env("NETWORK_ALARM_DIR")
-	return Path(alarm_dir) / "alarm_test.wav" #using alarm_test for now
+	return Path(alarm_dir) / "alarm.wav" # Change this to change output file name
