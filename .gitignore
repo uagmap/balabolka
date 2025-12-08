@@ -12,4 +12,5 @@ whitelist.json
 v4_ru.pt
 *.wav
 *.log
+*.log.*
 notes.txt

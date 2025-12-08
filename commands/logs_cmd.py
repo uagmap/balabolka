@@ -25,10 +25,10 @@ async def logs_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if logger.log_file.exists() and logger.log_file.stat().st_size > 0:
         all_log_files.append(logger.log_file)
     
-    # Check backup files (format: activity.log.YYYY-MM-DD.log)
+    # Check backup files (format: activity.log.YYYY-MM-DD)
     for i in range(31):  # Check up to 31 days back
         backup_date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
-        backup_file = log_dir / f"activity.log.{backup_date}.log"  # Add extension at end
+        backup_file = log_dir / f"activity.log.{backup_date}"
         if backup_file.exists():
             all_log_files.append(backup_file)
     

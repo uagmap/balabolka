@@ -22,3 +22,5 @@ part 2 - mobile notification
 - [x] add logging feature for audit trail?
 - [ ] send text notification to push
 - [ ] send notification message in telegram channel
+
+## App notification and telegram channel message features are suspended as there is an old system in use for that

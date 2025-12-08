@@ -27,3 +27,4 @@ dist/
 # Logs
 logs/
 *.log
+*.log.*
