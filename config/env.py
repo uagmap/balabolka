@@ -6,8 +6,18 @@ from dotenv import load_dotenv as _load_dotenv
 
 
 def load_env() -> None:
-	"""Load environment variables from a .env file if present."""
-	_load_dotenv()
+	"""Load environment variables from config/.env (preferred) or project .env."""
+	project_root = Path(__file__).resolve().parent.parent
+	config_env = project_root / "config" / ".env"
+	root_env = project_root / ".env"
+
+	if config_env.exists():
+		_load_dotenv(dotenv_path=config_env)
+	elif root_env.exists():
+		_load_dotenv(dotenv_path=root_env)
+	else:
+		# Fallback to default discovery for uncommon run setups.
+		_load_dotenv()
 
 
 def get_env(name: str, default: Optional[str] = None) -> str:

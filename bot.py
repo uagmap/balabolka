@@ -1,3 +1,5 @@
+import os
+
 from config.env import load_env, get_env
 from services.smb import smb_register_session
 from telegram.ext import Application, CommandHandler
@@ -19,7 +21,32 @@ def main() -> None:
 	smb_register_session()
 	token = get_env("API_KEY_TELEGRAM")
 
-	app = Application.builder().token(token).build()
+	builder = Application.builder().token(token)
+
+	# Optional transport settings.
+	base_url = os.getenv("TELEGRAM_BASE_URL")
+	base_file_url = os.getenv("TELEGRAM_BASE_FILE_URL")
+	proxy_url = os.getenv("TELEGRAM_PROXY_URL")
+	updates_proxy_url = os.getenv("TELEGRAM_UPDATES_PROXY_URL") or proxy_url
+
+	if base_url:
+		builder = builder.base_url(base_url)
+	if base_file_url:
+		builder = builder.base_file_url(base_file_url)
+
+	if proxy_url:
+		if hasattr(builder, "proxy"):
+			builder = builder.proxy(proxy_url)
+		elif hasattr(builder, "proxy_url"):
+			builder = builder.proxy_url(proxy_url)
+
+	if updates_proxy_url:
+		if hasattr(builder, "get_updates_proxy"):
+			builder = builder.get_updates_proxy(updates_proxy_url)
+		elif hasattr(builder, "get_updates_proxy_url"):
+			builder = builder.get_updates_proxy_url(updates_proxy_url)
+
+	app = builder.build()
 	app.add_handler(CommandHandler("start", start_cmd))
 	app.add_handler(CommandHandler("help", help_cmd))
 	app.add_handler(CommandHandler("ping", ping_cmd))
