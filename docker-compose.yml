@@ -1,6 +1,7 @@
 services:
   xray:
-    image: ghcr.io/xtls/xray-core:latest
+    # Keep a pinned version. `latest` can introduce TLS/runtime regressions.
+    image: ghcr.io/xtls/xray-core:26.2.6
     container_name: balabolka-xray
     command: ["run", "-c", "/etc/xray/config.json"]
     volumes:
