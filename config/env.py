@@ -27,6 +27,42 @@ def get_env(name: str, default: Optional[str] = None) -> str:
 	return value
 
 
+def get_env_optional(name: str, default: Optional[str] = None) -> Optional[str]:
+	value = os.getenv(name)
+	if value is None or value == "":
+		return default
+	return value
+
+
+def get_env_int(name: str, default: int) -> int:
+	value = get_env_optional(name)
+	if value is None:
+		return default
+	try:
+		return int(value)
+	except ValueError:
+		print(f"Invalid integer for {name}={value!r}; using default {default}")
+		return default
+
+
+def get_env_float(name: str, default: float) -> float:
+	value = get_env_optional(name)
+	if value is None:
+		return default
+	try:
+		return float(value)
+	except ValueError:
+		print(f"Invalid float for {name}={value!r}; using default {default}")
+		return default
+
+
+def get_env_bool(name: str, default: bool) -> bool:
+	value = get_env_optional(name)
+	if value is None:
+		return default
+	return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def get_alarm_path() -> Path:
 	alarm_dir = get_env("NETWORK_ALARM_DIR")
 	return Path(alarm_dir) / "alarm.wav" # Change this to change output file name

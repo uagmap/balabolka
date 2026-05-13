@@ -22,6 +22,7 @@ FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
+ENV PYTHONUNBUFFERED=1
 
 # Copy installed packages
 COPY --from=builder /root/.local /root/.local

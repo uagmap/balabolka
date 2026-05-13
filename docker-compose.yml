@@ -13,6 +13,22 @@ services:
       context: .
       dockerfile: Dockerfile
     image: balabolka-bot:latest
+    container_name: balabolka-bot
     env_file:
       - ./config/.env
+    restart: unless-stopped
+
+  watchdog:
+    image: curlimages/curl:8.19.0
+    container_name: balabolka-watchdog
+    user: "0:0"
+    depends_on:
+      - xray
+      - bot
+    command: ["sh", "/recover.sh"]
+    env_file:
+      - ./config/.env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./watchdog/recover.sh:/recover.sh:ro
     restart: unless-stopped
