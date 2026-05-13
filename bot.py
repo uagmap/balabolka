@@ -70,7 +70,7 @@ def build_network_error_handler():
 
 
 async def polling_monitor_loop(application: Application) -> None:
-	enabled = get_bool_env("POLLING_MONITOR_ENABLED", True)
+	enabled = get_env_bool("POLLING_MONITOR_ENABLED", True)
 	if not enabled:
 		print("POLLING_MONITOR_HEARTBEAT disabled")
 		return
