@@ -1,6 +1,3 @@
-import asyncio
-import contextlib
-import os
 import time
 
 from config.env import (
@@ -8,10 +5,15 @@ from config.env import (
 	get_env,
 	get_env_optional,
 	get_env_int,
-	get_env_bool,
+)
+from services.polling_monitor import (
+	apply_get_updates_transport,
+	attach_update_observer,
+	build_network_error_handler,
+	start_polling_monitor,
+	stop_polling_monitor,
 )
 from services.smb import smb_register_session
-from telegram.error import NetworkError
 from telegram.ext import Application, CommandHandler
 
 from commands.start_cmd import start_cmd
@@ -43,111 +45,13 @@ def smb_register_session_with_retry() -> None:
 			time.sleep(retry_delay)
 
 
-def build_network_error_handler():
-	threshold = get_env_int("NETWORK_ERROR_RESTART_THRESHOLD", 8)
-	window_seconds = get_env_int("NETWORK_ERROR_RESTART_WINDOW_SECONDS", 120)
-	state = {"count": 0, "window_start": 0.0}
-
-	async def _handler(update, context) -> None:
-		err = context.error
-		if isinstance(err, NetworkError):
-			now = time.time()
-			if state["window_start"] <= 0 or (now - state["window_start"]) > window_seconds:
-				state["window_start"] = now
-				state["count"] = 1
-			else:
-				state["count"] += 1
-
-			print(
-				f"NetworkError observed ({state['count']}/{threshold}) within {window_seconds}s window: {err}"
-			)
-
-			if state["count"] >= threshold:
-				print("NetworkError threshold reached, exiting process to trigger container restart.")
-				os._exit(1)
-
-	return _handler
-
-
-async def polling_monitor_loop(application: Application) -> None:
-	enabled = get_env_bool("POLLING_MONITOR_ENABLED", True)
-	if not enabled:
-		print("POLLING_MONITOR_HEARTBEAT disabled")
-		return
-
-	interval_seconds = max(5, get_env_int("POLLING_MONITOR_INTERVAL_SECONDS", 20))
-	restart_threshold = max(1, get_env_int("POLLING_MONITOR_RESTART_THRESHOLD", 3))
-	log_every_cycles = 2
-
-	consecutive_failures = 0
-	cycle = 0
-	print(
-		f"POLLING_MONITOR_HEARTBEAT startup interval_seconds={interval_seconds} restart_threshold={restart_threshold}"
-	)
-
-	while True:
-		cycle += 1
-		updater = application.updater
-		updater_running = bool(updater and updater.running)
-		polling_task = getattr(updater, "_Updater__polling_task", None) if updater else None
-		polling_alive = bool(updater_running and polling_task and not polling_task.done())
-		check_ok = False
-
-		if polling_alive:
-			try:
-				await application.bot.get_me()
-				check_ok = True
-			except Exception as exc:
-				print(f"Polling monitor: Telegram API check failed: {exc}")
-		else:
-			detail = ""
-			if polling_task is not None and polling_task.done() and not polling_task.cancelled():
-				try:
-					task_error = polling_task.exception()
-				except Exception as exc:
-					task_error = exc
-				if task_error is not None:
-					detail = f" error={task_error}"
-			print(f"Polling monitor: updater polling task not alive.{detail}")
-
-		if check_ok:
-			if consecutive_failures > 0:
-				print(f"Polling monitor recovered after {consecutive_failures} failed checks.")
-			consecutive_failures = 0
-		else:
-			consecutive_failures += 1
-			print(
-				f"Polling monitor: failed checks {consecutive_failures}/{restart_threshold}"
-			)
-
-		if cycle % log_every_cycles == 0:
-			print(
-				f"POLLING_MONITOR_HEARTBEAT cycle={cycle} updater_running={updater_running} polling_alive={polling_alive} failed_checks={consecutive_failures}"
-			)
-
-		if consecutive_failures >= restart_threshold:
-			print(
-				"Polling monitor threshold reached, exiting process to trigger container restart."
-			)
-			os._exit(1)
-
-		await asyncio.sleep(interval_seconds)
-
-
 async def post_init(application: Application) -> None:
 	await set_commands_menu(application)
-	application.bot_data["_polling_monitor_task"] = asyncio.create_task(
-		polling_monitor_loop(application),
-		name="polling-monitor",
-	)
+	await start_polling_monitor(application)
 
 
 async def post_stop(application: Application) -> None:
-	task = application.bot_data.pop("_polling_monitor_task", None)
-	if task is not None:
-		task.cancel()
-		with contextlib.suppress(asyncio.CancelledError):
-			await task
+	await stop_polling_monitor(application)
 
 
 def main() -> None:
@@ -174,23 +78,10 @@ def main() -> None:
 		elif hasattr(builder, "proxy_url"):
 			builder = builder.proxy_url(proxy_url)
 
-	if updates_proxy_url:
-		if hasattr(builder, "get_updates_proxy"):
-			builder = builder.get_updates_proxy(updates_proxy_url)
-		elif hasattr(builder, "get_updates_proxy_url"):
-			builder = builder.get_updates_proxy_url(updates_proxy_url)
-
-	# Stable defaults for long polling through sidecar proxy.
-	if hasattr(builder, "get_updates_connect_timeout"):
-		builder = builder.get_updates_connect_timeout(8.0)
-	if hasattr(builder, "get_updates_read_timeout"):
-		builder = builder.get_updates_read_timeout(25.0)
-	if hasattr(builder, "get_updates_write_timeout"):
-		builder = builder.get_updates_write_timeout(8.0)
-	if hasattr(builder, "get_updates_pool_timeout"):
-		builder = builder.get_updates_pool_timeout(5.0)
+	builder = apply_get_updates_transport(builder, updates_proxy_url)
 
 	app = builder.build()
+	attach_update_observer(app)
 	app.add_handler(CommandHandler("start", start_cmd))
 	app.add_handler(CommandHandler("help", help_cmd))
 	app.add_handler(CommandHandler("ping", ping_cmd))
