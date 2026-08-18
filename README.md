@@ -4,7 +4,7 @@ Telegram bot for generating Russian TTS announcements and mounting them to a net
 
 ## What It Does
 
-- Generates Russian speech from Cyrillic text (Silero v4, five voices).
+- Generates Russian speech from Cyrillic text (Silero v5.5, five voices).
 - Previews all voices via `/tts` without touching the network folder.
 - Mounts or removes `alarm.wav` on an SMB share via `/alarm`.
 - Lists files in the alarm directory with `/files`.
@@ -61,7 +61,7 @@ pip install -r requirements.txt
 python bot.py
 ```
 
-PyTorch installs from the CPU wheel index (`requirements.txt` pins `torch==2.8.0`). First run downloads `v4_ru.pt` into the working directory.
+PyTorch installs from the CPU wheel index (`requirements.txt` pins `torch==2.8.0`). First run downloads `v5_5_ru.pt` into the working directory.
 
 ## Configuration
 

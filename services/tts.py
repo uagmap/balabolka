@@ -8,6 +8,9 @@ import torch
 
 AVAILABLE_VOICES = ['aidar', 'baya', 'kseniya', 'xenia', 'eugene']
 
+MODEL_FILE = 'v5_5_ru.pt'
+MODEL_URL = 'https://models.silero.ai/models/tts/ru/v5_5_ru.pt'
+
 _model_cache = None
 def _load_model():
 	"""load and cache TTS model"""
@@ -21,9 +24,9 @@ def _load_model():
 
 	device = torch.device('cpu')
 	torch.set_num_threads(4)
-	local_file = 'v4_ru.pt'
+	local_file = MODEL_FILE
 	if not os.path.isfile(local_file):
-		torch.hub.download_url_to_file('https://models.silero.ai/models/tts/ru/v4_ru.pt', local_file)
+		torch.hub.download_url_to_file(MODEL_URL, local_file)
 	model = torch.package.PackageImporter(local_file).load_pickle("tts_models", "model")
 	model.to(device)
 	_model_cache = model
