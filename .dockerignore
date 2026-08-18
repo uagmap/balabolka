@@ -4,6 +4,13 @@ __pycache__/
 *.pyo
 *.pyd
 *.so
+.venv/
+
+# Local TTS models (downloaded at runtime inside the container)
+*.pt
+
+# Runtime data
+whitelist.json
 
 # Env
 .env

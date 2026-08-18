@@ -11,8 +11,11 @@ whitelist.json
 
 # local artifacts / large files
 v4_ru.pt
+v5_5_ru.pt
 *.wav
 *.log
 *.log.*
 notes.txt
 xray/config.json
+*.md
+!README.md
